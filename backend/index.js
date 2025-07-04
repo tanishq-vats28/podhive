@@ -20,7 +20,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://guileless-baklava-1da36e.netlify.app/",
+      "https://guileless-baklava-1da36e.netlify.app",
     ],
     credentials: true,
   })
