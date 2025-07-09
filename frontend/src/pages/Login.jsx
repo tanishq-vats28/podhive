@@ -1,68 +1,70 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mic, Eye, EyeOff } from 'lucide-react';
-import useAuth from '../context/useAuth';
-import Navbar from '../components/Navbar';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Mic, Eye, EyeOff } from "lucide-react";
+import useAuth from "../context/useAuth";
+import Navbar from "../components/Navbar";
 
 const Login = () => {
   const { login, loading } = useAuth();
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    userType: 'customer'
+    email: "",
+    password: "",
+    userType: "customer",
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     // Clear error when user types
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
-  
+
   const validate = () => {
     const newErrors = {};
-    
+
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = "Email is invalid";
     }
-    
+
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     }
-    
+
     if (!formData.userType) {
-      newErrors.userType = 'User type is required';
+      newErrors.userType = "User type is required";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
-    
+
     try {
       await login(formData);
       // Redirect is handled in the AuthContext
     } catch (error) {
-      console.error('Login error:', error);
-      
+      console.error("Login error:", error);
+
       // Handle specific error cases
       if (error.response?.status === 401) {
-        setErrors({ general: 'Invalid credentials. Please check your email and password.' });
+        setErrors({
+          general: "Invalid credentials. Please check your email and password.",
+        });
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: 'Login failed. Please try again.' });
+        setErrors({ general: "Login failed. Please try again." });
       }
     }
   };
@@ -70,7 +72,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <Navbar />
-      
+
       <div className="flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
@@ -82,7 +84,9 @@ const Login = () => {
                 </div>
               </div>
               <h1 className="text-2xl font-bold text-white">Welcome Back</h1>
-              <p className="text-indigo-100 mt-1">Sign in to your PodHive account</p>
+              <p className="text-indigo-100 mt-1">
+                Sign in to your PodHive account
+              </p>
             </div>
 
             {/* Form */}
@@ -92,10 +96,13 @@ const Login = () => {
                   {errors.general}
                 </div>
               )}
-              
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Email Address
                   </label>
                   <input
@@ -105,7 +112,9 @@ const Login = () => {
                     value={formData.email}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                      errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.email
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
                     }`}
                     placeholder="your@email.com"
                   />
@@ -113,20 +122,25 @@ const Login = () => {
                     <p className="mt-2 text-sm text-red-600">{errors.email}</p>
                   )}
                 </div>
-                
+
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Password
                   </label>
                   <div className="relative">
                     <input
                       id="password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
                       className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                        errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.password
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
                       }`}
                       placeholder="••••••••"
                     />
@@ -135,16 +149,25 @@ const Login = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="mt-2 text-sm text-red-600">{errors.password}</p>
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
-                
+
                 <div>
-                  <label htmlFor="userType" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="userType"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     I am a
                   </label>
                   <select
@@ -153,18 +176,22 @@ const Login = () => {
                     value={formData.userType}
                     onChange={handleChange}
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                      errors.userType ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      errors.userType
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
                     }`}
                   >
-                    <option value="customer">Customer</option>
-                    <option value="owner">Studio Owner</option>
+                    <option value="customer">User</option>
+                    <option value="owner">Studio Partner</option>
                     <option value="admin">Admin</option>
                   </select>
                   {errors.userType && (
-                    <p className="mt-2 text-sm text-red-600">{errors.userType}</p>
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.userType}
+                    </p>
                   )}
                 </div>
-                
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -176,15 +203,18 @@ const Login = () => {
                       Signing in...
                     </div>
                   ) : (
-                    'Sign In'
+                    "Sign In"
                   )}
                 </button>
               </form>
-              
+
               <div className="mt-8 text-center">
                 <p className="text-gray-600">
-                  Don't have an account?{' '}
-                  <Link to="/signup" className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+                  Don't have an account?{" "}
+                  <Link
+                    to="/signup"
+                    className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+                  >
                     Create one here
                   </Link>
                 </p>

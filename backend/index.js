@@ -16,16 +16,30 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// app.use(
+//   cors({
+//     origin: [
+//       "http://localhost:5173",
+//       "https://guileless-baklava-1da36e.netlify.app",
+//     ],
+//     credentials: true,
+//   })
+// );
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://guileless-baklava-1da36e.netlify.app",
+    origin: "https://guileless-baklava-1da36e.netlify.app",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Origin",
     ],
     credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   })
 );
-
 // Middleware
 app.use(express.json());
 
