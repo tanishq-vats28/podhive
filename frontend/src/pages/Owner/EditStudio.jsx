@@ -11,10 +11,11 @@ import {
   Clock,
   Package,
   Wrench,
+  Trash2,
 } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { format, addMonths } from "date-fns";
+import { format, addMonths, eachDayOfInterval, startOfDay } from "date-fns";
 import useAuth from "../../context/useAuth";
 
 const DEFAULT_EQUIPMENT_OPTIONS = [
@@ -54,9 +55,9 @@ const EditStudio = () => {
       end_time: "18:00",
     },
     packages: [
-      { key: "1cam", price: "", description: "Basic single camera setup" },
-      { key: "2cam", price: "", description: "Dual camera angles" },
-      { key: "3cam", price: "", description: "Full setup with 3 cameras" },
+      { key: "1 Cam", price: "", description: "Basic single camera setup" },
+      { key: "2 Cam", price: "", description: "Dual camera angles" },
+      { key: "3 Cam", price: "", description: "Full setup with 3 cameras" },
     ],
     addons: [],
     location: {
@@ -70,9 +71,11 @@ const EditStudio = () => {
   const [existingImages, setExistingImages] = useState([]);
   const [selectedImages, setSelectedImages] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
-  const [availabilityDates, setAvailabilityDates] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedHours, setSelectedHours] = useState([]);
+
+  const [availability, setAvailability] = useState([]);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+
   const [newAddon, setNewAddon] = useState({
     key: "",
     name: "",
@@ -93,14 +96,12 @@ const EditStudio = () => {
           return;
         }
 
-        // Check if user is the owner of this studio
         if (foundStudio.author !== user?._id) {
           toast.error("You do not have permission to edit this studio");
           navigate("/owner/studios");
           return;
         }
 
-        // Check if studio is approved
         if (!foundStudio.approved) {
           toast.error("You cannot edit a studio that is pending approval");
           navigate("/owner/studios");
@@ -110,7 +111,37 @@ const EditStudio = () => {
         setStudio(foundStudio);
         setExistingImages(foundStudio.images || []);
 
-        // Populate form data
+        if (foundStudio.availability && foundStudio.availability.length > 0) {
+          const loadedAvailability = foundStudio.availability
+            .map((day) => {
+              if (!day || !day.date) {
+                console.warn("Skipping invalid availability entry:", day);
+                return null;
+              }
+
+              // **FIXED LOGIC**: Directly parse the ISO string from the database.
+              const date = new Date(day.date);
+
+              if (isNaN(date.getTime())) {
+                console.warn(
+                  "Skipping entry with invalid date format:",
+                  day.date
+                );
+                return null;
+              }
+
+              return {
+                dateKey: date.toISOString(),
+                date: date,
+                slots: day.slots,
+              };
+            })
+            .filter(Boolean)
+            .sort((a, b) => a.date - b.date);
+
+          setAvailability(loadedAvailability);
+        }
+
         setFormData({
           name: foundStudio.name || "",
           description: foundStudio.description || "",
@@ -118,18 +149,28 @@ const EditStudio = () => {
           equipments: foundStudio.equipments || [],
           customEquipment: "",
           operationalHours: {
-            start_time: foundStudio.operationalHours?.start_time || "09:00",
-            end_time: foundStudio.operationalHours?.end_time || "18:00",
+            start_time: foundStudio.operationalHours?.start
+              ? `${String(foundStudio.operationalHours.start).padStart(
+                  2,
+                  "0"
+                )}:00`
+              : "09:00",
+            end_time: foundStudio.operationalHours?.end
+              ? `${String(foundStudio.operationalHours.end).padStart(
+                  2,
+                  "0"
+                )}:00`
+              : "18:00",
           },
           packages: foundStudio.packages || [
             {
-              key: "1cam",
+              key: "1 Cam",
               price: "",
               description: "Basic single camera setup",
             },
-            { key: "2cam", price: "", description: "Dual camera angles" },
+            { key: "2 Cam", price: "", description: "Dual camera angles" },
             {
-              key: "3cam",
+              key: "3 Cam",
               price: "",
               description: "Full setup with 3 cameras",
             },
@@ -235,12 +276,11 @@ const EditStudio = () => {
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
 
-    if (files.length + selectedImages.length > 5) {
-      toast.error("You can upload a maximum of 5 images");
+    if (files.length + selectedImages.length + existingImages.length > 5) {
+      toast.error("You can have a maximum of 5 images in total.");
       return;
     }
 
-    // Create preview URLs
     const newImagePreviews = files.map((file) => URL.createObjectURL(file));
     setSelectedImages((prev) => [...prev, ...newImagePreviews]);
     setImageFiles((prev) => [...prev, ...files]);
@@ -255,101 +295,101 @@ const EditStudio = () => {
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
-  };
-
-  const handleHourToggle = (hour) => {
-    setSelectedHours((prev) => {
-      if (prev.includes(hour)) {
-        return prev.filter((h) => h !== hour);
-      } else {
-        return [...prev, hour].sort((a, b) => a - b);
-      }
-    });
-  };
-
-  const handleAddAvailability = () => {
-    if (!selectedDate) {
-      toast.error("Please select a date");
+  const handleGenerateAvailability = () => {
+    if (!startDate || !endDate) {
+      toast.error("Please select both a start and end date.");
+      return;
+    }
+    if (endDate < startDate) {
+      toast.error("End date cannot be before the start date.");
       return;
     }
 
-    if (selectedHours.length === 0) {
-      toast.error("Please select at least one hour");
-      return;
-    }
-
-    const formattedDate = format(selectedDate, "yyyy-MM-dd");
-
-    // Check if date already exists
-    const existingDateIndex = availabilityDates.findIndex(
-      (item) => format(new Date(item.date), "yyyy-MM-dd") === formattedDate
-    );
-
-    if (existingDateIndex !== -1) {
-      // Update existing date's hours
-      const updatedAvailability = [...availabilityDates];
-      const existingHours = updatedAvailability[existingDateIndex].hours;
-      const newHours = [...new Set([...existingHours, ...selectedHours])].sort(
-        (a, b) => a - b
-      );
-      updatedAvailability[existingDateIndex].hours = newHours;
-      setAvailabilityDates(updatedAvailability);
-    } else {
-      // Add new date with selected hours
-      setAvailabilityDates((prev) => [
-        ...prev,
-        {
-          date: selectedDate,
-          hours: [...selectedHours],
-        },
-      ]);
-    }
-
-    // Reset selection
-    setSelectedDate(null);
-    setSelectedHours([]);
-  };
-
-  const handleRemoveAvailability = (index) => {
-    setAvailabilityDates((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const getOperationalHours = () => {
     const startHour = parseInt(
       formData.operationalHours.start_time.split(":")[0]
     );
     const endHour = parseInt(formData.operationalHours.end_time.split(":")[0]);
-    const hours = [];
 
-    for (let hour = startHour; hour < endHour; hour++) {
-      hours.push(hour);
+    if (isNaN(startHour) || isNaN(endHour) || startHour >= endHour) {
+      toast.error("Invalid operational hours. Please set a valid time range.");
+      return;
     }
 
-    return hours;
+    const dateInterval = eachDayOfInterval({
+      start: startOfDay(startDate),
+      end: startOfDay(endDate),
+    });
+
+    const newAvailability = dateInterval.map((date) => {
+      const slots = [];
+      for (let hour = startHour; hour < endHour; hour++) {
+        slots.push({ hour, isAvailable: true });
+      }
+      return {
+        dateKey: date.toISOString(),
+        date: date,
+        slots: slots,
+      };
+    });
+
+    const availabilityMap = new Map(
+      availability.map((day) => [day.dateKey, day])
+    );
+    newAvailability.forEach((day) => availabilityMap.set(day.dateKey, day));
+
+    const updatedAvailability = Array.from(availabilityMap.values()).sort(
+      (a, b) => a.date - b.date
+    );
+
+    setAvailability(updatedAvailability);
+    toast.success(
+      `Generated or updated ${newAvailability.length} days of availability.`
+    );
+  };
+
+  const handleToggleSlot = (dateKey, hourToToggle) => {
+    setAvailability((prev) =>
+      prev.map((day) => {
+        if (day.dateKey === dateKey) {
+          return {
+            ...day,
+            slots: day.slots.map((slot) => {
+              if (slot.hour === hourToToggle) {
+                return { ...slot, isAvailable: !slot.isAvailable };
+              }
+              return slot;
+            }),
+          };
+        }
+        return day;
+      })
+    );
+  };
+
+  const handleRemoveDate = (dateKeyToRemove) => {
+    setAvailability((prev) =>
+      prev.filter((day) => day.dateKey !== dateKeyToRemove)
+    );
+    toast.warn("Day removed from the list to be saved.");
   };
 
   const formatHour = (hour) => {
     const period = hour >= 12 ? "PM" : "AM";
-    const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
     return `${displayHour}:00 ${period}`;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form
     if (!formData.name) {
       toast.error("Studio name is required");
       return;
     }
-
     if (!formData.packages.every((pkg) => pkg.price)) {
       toast.error("All package prices are required");
       return;
     }
-
     if (
       !formData.location.fullAddress ||
       !formData.location.city ||
@@ -359,7 +399,6 @@ const EditStudio = () => {
       toast.error("All location fields are required");
       return;
     }
-
     if (existingImages.length === 0 && imageFiles.length === 0) {
       toast.error("Please upload at least one image");
       return;
@@ -368,31 +407,34 @@ const EditStudio = () => {
     setSubmitting(true);
 
     try {
-      // Prepare availability array for API (if any new availability is added)
-      const availability = [];
-      availabilityDates.forEach((dateObj) => {
-        dateObj.hours.forEach((hour) => {
-          availability.push({
-            date: format(new Date(dateObj.date), "yyyy-MM-dd"),
-            hour,
-            isAvailable: true,
-          });
-        });
-      });
+      const formattedAvailability = availability.map((day) => ({
+        date: format(day.date, "yyyy-MM-dd"),
+        slots: day.slots,
+      }));
 
-      // Create FormData object
       const formDataObj = new FormData();
       formDataObj.append("name", formData.name);
       formDataObj.append("description", formData.description);
-      formDataObj.append("pricePerHour", formData.pricePerHour);
+      formDataObj.append("pricePerHour", formData.packages[0].price);
       formDataObj.append("equipments", JSON.stringify(formData.equipments));
+
+      const startHour = parseInt(
+        formData.operationalHours.start_time.split(":")[0],
+        10
+      );
+      const endHour = parseInt(
+        formData.operationalHours.end_time.split(":")[0],
+        10
+      );
+
       formDataObj.append(
         "operationalHours",
         JSON.stringify({
-          start_time: formData.operationalHours.start_time,
-          end_time: formData.operationalHours.end_time,
+          start: startHour,
+          end: endHour,
         })
       );
+
       formDataObj.append(
         "packages",
         JSON.stringify(
@@ -404,24 +446,17 @@ const EditStudio = () => {
       );
       formDataObj.append("addons", JSON.stringify(formData.addons));
       formDataObj.append("location", JSON.stringify(formData.location));
+      formDataObj.append("availability", JSON.stringify(formattedAvailability));
+      formDataObj.append("existingImages", JSON.stringify(existingImages));
 
-      // Only append availability if new dates were added
-      if (availability.length > 0) {
-        formDataObj.append("availability", JSON.stringify(availability));
-      }
-
-      // If we're replacing images, append the new ones
-      if (imageFiles.length > 0) {
-        imageFiles.forEach((file) => {
-          formDataObj.append("images", file);
-        });
-      } else {
-        // Keep existing images
-        formDataObj.append("existingImages", JSON.stringify(existingImages));
-      }
+      imageFiles.forEach((file) => {
+        formDataObj.append("images", file);
+      });
 
       await updateStudio(studioId, formDataObj);
-      toast.success("Studio updated successfully");
+      toast.success(
+        "Studio updated successfully. Your availability has been saved."
+      );
       navigate("/owner/studios");
     } catch (error) {
       console.error("Error updating studio:", error);
@@ -503,25 +538,6 @@ const EditStudio = () => {
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     placeholder="Describe your studio, its features, and what makes it special..."
                   ></textarea>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="pricePerHour"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Base Price Per Hour (₹)
-                  </label>
-                  <input
-                    id="pricePerHour"
-                    name="pricePerHour"
-                    type="number"
-                    min="0"
-                    value={formData.pricePerHour}
-                    onChange={handleChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    placeholder="Base hourly rate"
-                  />
                 </div>
               </div>
             </div>
@@ -677,9 +693,9 @@ const EditStudio = () => {
                     className="p-4 border border-gray-200 rounded-lg"
                   >
                     <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      {pkg.key === "1cam"
-                        ? "1 Camera Setup"
-                        : pkg.key === "2cam"
+                      {pkg.key === "1 Cam"
+                        ? "1 Camera Setup (Base Price)"
+                        : pkg.key === "2 Cam"
                         ? "2 Camera Setup"
                         : "3 Camera Setup"}
                     </h3>
@@ -955,100 +971,109 @@ const EditStudio = () => {
               </div>
             </div>
 
-            {/* Additional Availability (Optional) */}
+            {/* Availability Section */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center mb-6">
                 <Calendar className="h-6 w-6 text-indigo-600 mr-2" />
                 <h2 className="text-xl font-semibold text-gray-900">
-                  Add More Availability (Optional)
+                  Manage Availability
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Date
-                  </label>
-                  <DatePicker
-                    selected={selectedDate}
-                    onChange={handleDateChange}
-                    minDate={new Date()}
-                    maxDate={addMonths(new Date(), 3)}
-                    placeholderText="Select a date"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                    dateFormat="MMMM d, yyyy"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Hours
-                  </label>
-                  <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                    {getOperationalHours().map((hour) => (
-                      <button
-                        key={hour}
-                        type="button"
-                        onClick={() => handleHourToggle(hour)}
-                        className={`p-2 text-sm rounded-lg border transition-all ${
-                          selectedHours.includes(hour)
-                            ? "bg-indigo-600 text-white border-indigo-600"
-                            : "bg-white text-gray-700 border-gray-300 hover:border-indigo-300 hover:bg-indigo-50"
-                        }`}
-                      >
-                        {formatHour(hour)}
-                      </button>
-                    ))}
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  Generate / Update Availability for a Date Range
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Date
+                    </label>
+                    <DatePicker
+                      selected={startDate}
+                      onChange={(date) => setStartDate(date)}
+                      selectsStart
+                      startDate={startDate}
+                      endDate={endDate}
+                      minDate={new Date()}
+                      maxDate={addMonths(new Date(), 3)}
+                      placeholderText="Select start date"
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                      dateFormat="MMMM d, yyyy"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Date
+                    </label>
+                    <DatePicker
+                      selected={endDate}
+                      onChange={(date) => setEndDate(date)}
+                      selectsEnd
+                      startDate={startDate}
+                      endDate={endDate}
+                      minDate={startDate || new Date()}
+                      maxDate={addMonths(new Date(), 3)}
+                      placeholderText="Select end date"
+                      className="w-full p-3 border border-gray-300 rounded-lg"
+                      dateFormat="MMMM d, yyyy"
+                    />
                   </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateAvailability}
+                  className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Generate / Update Slots
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={handleAddAvailability}
-                className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors mb-6 flex items-center"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Add Availability
-              </button>
-
-              {availabilityDates.length > 0 ? (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium mb-3 text-gray-900">
-                    New Availability to Add:
+              {availability.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    Review & Edit Availability
                   </h3>
-                  <div className="space-y-3">
-                    {availabilityDates.map((dateObj, index) => (
+                  <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                    {availability.map(({ dateKey, date, slots }) => (
                       <div
-                        key={index}
-                        className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-200"
+                        key={dateKey}
+                        className="p-4 border border-gray-200 rounded-lg"
                       >
-                        <div>
-                          <span className="font-medium text-gray-900">
-                            {format(new Date(dateObj.date), "MMMM d, yyyy")}
-                          </span>
-                          <div className="text-sm text-gray-600 mt-1">
-                            Hours:{" "}
-                            {dateObj.hours
-                              .map((hour) => formatHour(hour))
-                              .join(", ")}
-                          </div>
+                        <div className="flex justify-between items-center mb-3">
+                          <h4 className="font-medium text-gray-800">
+                            {format(date, "EEEE, MMMM d, yyyy")}
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDate(dateKey)}
+                            className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100"
+                            title="Remove this entire day"
+                          >
+                            <Trash2 className="h-5 w-5" />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveAvailability(index)}
-                          className="text-red-500 hover:text-red-700 transition-colors"
-                        >
-                          <X className="h-5 w-5" />
-                        </button>
+                        <div className="flex flex-wrap gap-2">
+                          {slots.map(({ hour, isAvailable }) => (
+                            <button
+                              key={hour}
+                              type="button"
+                              onClick={() => handleToggleSlot(dateKey, hour)}
+                              className={`px-3 py-1.5 text-sm rounded-md border transition-all ${
+                                isAvailable
+                                  ? "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
+                                  : "bg-red-100 text-red-800 border-red-200 hover:bg-red-200 line-through"
+                              }`}
+                            >
+                              {formatHour(hour)}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              ) : (
-                <p className="text-gray-500 text-sm">
-                  No new availability added.
-                </p>
               )}
             </div>
 
@@ -1061,7 +1086,6 @@ const EditStudio = () => {
                 </h2>
               </div>
 
-              {/* Existing Images */}
               {existingImages.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-medium text-gray-700 mb-3">
@@ -1088,7 +1112,6 @@ const EditStudio = () => {
                 </div>
               )}
 
-              {/* New Images Upload */}
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors">
                 <input
                   type="file"
@@ -1137,7 +1160,7 @@ const EditStudio = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-4 pt-4">
               <button
                 type="button"
                 onClick={() => navigate("/owner/studios")}

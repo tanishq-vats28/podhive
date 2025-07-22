@@ -24,6 +24,7 @@ import {
   Edit,
   Camera,
   Wrench,
+  Info,
 } from "lucide-react";
 
 const StudioDetails = () => {
@@ -333,9 +334,9 @@ const StudioDetails = () => {
                       <div className="flex items-center mb-3">
                         <Camera className="h-5 w-5 mr-2 text-indigo-600" />
                         <span className="font-medium text-gray-900">
-                          {pkg.key === "1cam"
+                          {pkg.key === "1 Cam"
                             ? "1 Camera"
-                            : pkg.key === "2cam"
+                            : pkg.key === "2 Cam"
                             ? "2 Cameras"
                             : "3 Cameras"}
                         </span>
@@ -380,6 +381,16 @@ const StudioDetails = () => {
                   </div>
                 </>
               )}
+
+              {/* Cancellation Policy */}
+              <h3 className="text-lg font-medium mb-4 mt-8 text-gray-900 flex items-center">
+                <Info className="h-5 w-5 mr-2 text-indigo-600" />
+                Cancellation Policy
+              </h3>
+              <p className="text-gray-700 leading-relaxed">
+                Cancellation or changes in booking is possible through demand,
+                visit contact us page and pull up the request.
+              </p>
             </div>
 
             {/* Reviews Section */}

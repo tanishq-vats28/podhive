@@ -6,6 +6,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import Home from "../pages/Home";
 import StudioList from "../pages/StudioList";
 import StudioDetails from "../pages/StudioDetails";
+import AboutUs from "../pages/AboutUs";
+import AddYourStudio from "../pages/AddYourStudio";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import VerifyOtp from "../pages/VerifyOtp";
@@ -47,8 +49,10 @@ const AppRouter = () => {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
+      <Route path="/about" element={<AboutUs />} />
       <Route path="/studios" element={<StudioList />} />
       <Route path="/studios/:studioId" element={<StudioDetails />} />
+      <Route path="/add-your-studio" element={<AddYourStudio />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/verify-otp" element={<VerifyOtp />} />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home,
@@ -9,21 +9,29 @@ import {
   Settings,
   PlusCircle,
   List,
+  Menu,
+  X,
 } from "lucide-react";
 import useAuth from "../context/useAuth";
 
 const Sidebar = () => {
   const { role, logout } = useAuth();
   const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isActive = (path) => {
     return location.pathname === path ? "bg-indigo-700" : "";
+  };
+
+  const handleLinkClick = () => {
+    setIsMenuOpen(false);
   };
 
   const renderCustomerLinks = () => (
     <>
       <Link
         to="/studios"
+        onClick={handleLinkClick}
         className={`flex items-center p-3 rounded-md hover:bg-indigo-700 ${isActive(
           "/studios"
         )}`}
@@ -33,6 +41,7 @@ const Sidebar = () => {
       </Link>
       <Link
         to="/bookings/customer"
+        onClick={handleLinkClick}
         className={`flex items-center p-3 rounded-md hover:bg-indigo-700 ${isActive(
           "/bookings/customer"
         )}`}
@@ -47,6 +56,7 @@ const Sidebar = () => {
     <>
       <Link
         to="/owner/studios"
+        onClick={handleLinkClick}
         className={`flex items-center p-3 rounded-md hover:bg-indigo-700 ${isActive(
           "/owner/studios"
         )}`}
@@ -56,6 +66,7 @@ const Sidebar = () => {
       </Link>
       <Link
         to="/owner/studios/new"
+        onClick={handleLinkClick}
         className={`flex items-center p-3 rounded-md hover:bg-indigo-700 ${isActive(
           "/owner/studios/new"
         )}`}
@@ -65,6 +76,7 @@ const Sidebar = () => {
       </Link>
       <Link
         to="/owner/bookings"
+        onClick={handleLinkClick}
         className={`flex items-center p-3 rounded-md hover:bg-indigo-700 ${isActive(
           "/owner/bookings"
         )}`}
@@ -80,6 +92,7 @@ const Sidebar = () => {
     <>
       <Link
         to="/admin/studios/pending"
+        onClick={handleLinkClick}
         className={`flex items-center p-3 rounded-md hover:bg-indigo-700 ${isActive(
           "/admin/studios/pending"
         )}`}
@@ -89,6 +102,7 @@ const Sidebar = () => {
       </Link>
       <Link
         to="/admin/bookings"
+        onClick={handleLinkClick}
         className={`flex items-center p-3 rounded-md hover:bg-indigo-700 ${isActive(
           "/admin/bookings"
         )}`}
@@ -101,18 +115,40 @@ const Sidebar = () => {
   );
 
   return (
-    <div className="bg-indigo-800 text-white h-full min-h-screen w-64 p-4">
-      <Link
-        to="/"
-        className="flex items-center justify-center mb-8 pt-4 hover:opacity-80 transition-opacity"
-      >
-        <Mic className="h-8 w-8 mr-2" />
-        <h1 className="text-xl font-bold">PodHive</h1>
-      </Link>
+    <div className="bg-indigo-800 text-white p-4 sticky top-0 z-50 flex items-center justify-between md:relative md:flex-col md:justify-start md:min-h-screen md:w-64">
+      {/* Logo and Hamburger Menu Wrapper */}
+      <div className="flex items-center justify-between w-full md:w-auto md:flex-col">
+        <Link
+          to="/"
+          onClick={handleLinkClick}
+          className="flex items-center md:justify-center md:mb-8 md:pt-4 hover:opacity-80 transition-opacity"
+        >
+          <Mic className="h-8 w-8 mr-2" />
+          <h1 className="text-xl font-bold">PodHive</h1>
+        </Link>
 
-      <div className="space-y-2">
+        {/* Hamburger Menu Button (Mobile Only) */}
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="md:hidden p-2 rounded-md hover:bg-indigo-700"
+        >
+          {isMenuOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
+        </button>
+      </div>
+
+      {/* Navigation Links */}
+      <nav
+        className={`${
+          isMenuOpen ? "flex" : "hidden"
+        } absolute top-full left-0 w-full bg-indigo-800 p-4 flex-col space-y-2 md:flex md:relative md:top-auto md:left-auto md:w-auto md:p-0 md:bg-transparent`}
+      >
         <Link
           to={`/dashboard/${role}`}
+          onClick={handleLinkClick}
           className={`flex items-center p-3 rounded-md hover:bg-indigo-700 ${isActive(
             `/dashboard/${role}`
           )}`}
@@ -126,13 +162,16 @@ const Sidebar = () => {
         {role === "admin" && renderAdminLinks()}
 
         <button
-          onClick={logout}
+          onClick={() => {
+            handleLinkClick();
+            logout();
+          }}
           className="flex items-center p-3 rounded-md hover:bg-indigo-700 w-full text-left"
         >
           <LogOut className="h-5 w-5 mr-3" />
           <span>Logout</span>
         </button>
-      </div>
+      </nav>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://podhive.onrender.com",
+  baseURL: "http://localhost:5000/api", // Updated to include /api prefix
   headers: {
     "Content-Type": "application/json",
   },
@@ -16,6 +16,11 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
+// Contact Form
+export const submitContactForm = (formData) => API.post("/contact", formData);
+
+export const submitStudioInquiry = (inquiryData) =>
+  API.post("/studio-inquiry", inquiryData);
 // Auth
 export const signup = (userData) => API.post("/user/signup", userData);
 export const verifyOtp = (otpData) => API.post("/user/verify-otp", otpData);
@@ -48,6 +53,10 @@ export const getReviewsByStudio = (studioId) =>
   API.get(`/review/studio/${studioId}`);
 export const updateReview = (id, data) => API.put(`/review/${id}`, data);
 export const deleteReview = (id) => API.delete(`/review/${id}`);
+
+// // Studio Inquiry
+// export const submitStudioInquiry = (inquiryData) =>
+//   API.post("/studio-inquiry", inquiryData);
 
 // Admin
 export const getPendingStudios = () => API.get("/admin/studios/pending");

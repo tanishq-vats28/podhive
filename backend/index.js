@@ -9,6 +9,7 @@ const studioRouter = require("./routes/studioRouter");
 const adminRouter = require("./routes/adminRouter");
 const reviewRouter = require("./routes/reviewRouter");
 const availabilityRouter = require("./routes/availabilityRouter");
+const contactRoutes = require("./routes/contactRoutes.js");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
 
 dotenv.config();
@@ -27,7 +28,7 @@ const PORT = process.env.PORT || 5000;
 // );
 app.use(
   cors({
-    origin: "https://guileless-baklava-1da36e.netlify.app",
+    origin: "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",
@@ -47,13 +48,13 @@ app.use(express.json());
 connectDB();
 
 // API Routes
-app.use("/booking", bookingRouter);
-app.use("/user", userRouter);
-app.use("/studio", studioRouter);
-app.use("/admin", adminRouter);
-app.use("/review", reviewRouter);
-app.use("/availability", availabilityRouter);
-
+app.use("/api/user", userRouter);
+app.use("/api/booking", bookingRouter);
+app.use("/api/studio", studioRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/review", reviewRouter);
+app.use("/api/availability", availabilityRouter);
+app.use("/api", contactRoutes);
 // Error Handling
 app.use(notFound);
 app.use(errorHandler);

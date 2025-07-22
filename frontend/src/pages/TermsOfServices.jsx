@@ -27,7 +27,7 @@ const TermsOfService = () => {
       icon: Users,
       content: [
         "PodHive is a podcast studio aggregator platform — connecting users with verified studio spaces across cities.",
-        "We enable browsing of studio listings, booking of available slots, and seamless communication between hosts and renters.",
+        "We enable Browse of studio listings, booking of available slots, and seamless communication between hosts and renters.",
         "Note: PodHive is not the service provider of the studios listed. The responsibility for the actual experience rests with the studio partner.",
       ],
     },
@@ -57,9 +57,9 @@ const TermsOfService = () => {
       title: "Payments & Fees",
       icon: FileText,
       content: [
-        "Payments are made online through integrated gateways (e.g., Razorpay, Stripe).",
-        "PodHive may charge a platform fee or service charge, transparently displayed at checkout.",
-        "Studio rates and discounts are determined by the studio owner.",
+        "Currently, PodHive does not handle online payments. All payments are to be made directly at the studio.",
+        "PodHive does not charge any platform fee or service charge to the user for booking.",
+        "Studio rates, discounts, and payment methods accepted are determined by the studio owner.",
       ],
     },
     {
@@ -67,9 +67,9 @@ const TermsOfService = () => {
       title: "Cancellations & Refunds",
       icon: Clock,
       content: [
-        "Each studio has its own cancellation window (e.g., 24hr, 6hr notice).",
-        "Refunds are processed as per the studio’s policy.",
-        "PodHive facilitates refund processing but is not liable for delays caused by banks or payment partners.",
+        "Cancellation or changes in booking is possible through demand, visit contact us page and pull up the request.",
+        "Since payments are made at the studio, any refunds are subject to the individual studio's cancellation policy.",
+        "PodHive does not process refunds as we do not handle payments.",
       ],
     },
     {
@@ -77,7 +77,7 @@ const TermsOfService = () => {
       title: "Third-Party Tools & Integrations",
       icon: Scale,
       content: [
-        "PodHive may use or connect to third-party tools, including but not limited to Google Calendar or Apple Calendar for booking sync, payment gateways (Razorpay, Stripe, UPI), map & location APIs for discovery.",
+        "PodHive may use or connect to third-party tools, including but not limited to Google Calendar or Apple Calendar for booking sync, map & location APIs for discovery.",
         "We are not liable for service disruptions or data errors caused by these third-party tools.",
       ],
     },
@@ -148,9 +148,9 @@ const TermsOfService = () => {
       icon: FileText,
       content: [
         "Sign up, verify and complete your profile.",
-        "Browse and select a studio, choose slots and add-ons.",
-        "Pay securely via preferred gateway.",
-        "Show up, record, and enjoy!",
+        "Browse and select a studio, choose your desired slots and add-ons.",
+        "Confirm your booking and get ready to create.",
+        "Show up, pay at the studio, and enjoy your session!",
       ],
     },
   ];
@@ -236,13 +236,13 @@ const TermsOfService = () => {
               href="/contact"
               className="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
             >
-              Contact Legal Team
+              Contact Team
             </a>
             <a
-              href="mailto:legal@podhive.com"
+              href="mailto:care.podhive@gmail.com"
               className="inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl hover:bg-white/20 transition-colors font-semibold border border-white/20"
             >
-              legal@podhive.com
+              care.podhive@gmail.com
             </a>
           </div>
         </div>

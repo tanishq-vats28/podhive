@@ -1,83 +1,83 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mic, Eye, EyeOff, User, Mail, Phone, Lock } from 'lucide-react';
-import useAuth from '../context/useAuth';
-import Navbar from '../components/Navbar';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Mic, Eye, EyeOff, User, Mail, Phone, Lock } from "lucide-react";
+import useAuth from "../context/useAuth";
+import Navbar from "../components/Navbar";
 
 const Signup = () => {
   const { signup, loading } = useAuth();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phone: '',
-    userType: 'customer'
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+    userType: "customer",
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     // Clear error when user types
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
-  
+
   const validate = () => {
     const newErrors = {};
-    
+
     if (!formData.name) {
-      newErrors.name = 'Name is required';
+      newErrors.name = "Name is required";
     }
-    
+
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = "Email is invalid";
     }
-    
+
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
     }
-    
+
     if (!formData.phone) {
-      newErrors.phone = 'Phone number is required';
+      newErrors.phone = "Phone number is required";
     } else if (!/^\d{10}$/.test(formData.phone)) {
-      newErrors.phone = 'Phone number must be 10 digits';
+      newErrors.phone = "Phone number must be 10 digits";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validate()) return;
-    
+
     try {
       // Remove confirmPassword before sending to API
       const { confirmPassword, ...signupData } = formData;
       await signup(signupData);
       // Redirect is handled in the AuthContext
     } catch (error) {
-      console.error('Signup error:', error);
-      
+      console.error("Signup error:", error);
+
       if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
       } else {
-        setErrors({ general: 'Signup failed. Please try again.' });
+        setErrors({ general: "Signup failed. Please try again." });
       }
     }
   };
@@ -85,7 +85,7 @@ const Signup = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <Navbar />
-      
+
       <div className="flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
@@ -97,7 +97,9 @@ const Signup = () => {
                 </div>
               </div>
               <h1 className="text-2xl font-bold text-white">Join PodHive</h1>
-              <p className="text-indigo-100 mt-1">Create your account to get started</p>
+              <p className="text-indigo-100 mt-1">
+                Create your account to get started
+              </p>
             </div>
 
             {/* Form */}
@@ -107,10 +109,13 @@ const Signup = () => {
                   {errors.general}
                 </div>
               )}
-              
+
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Full Name
                   </label>
                   <div className="relative">
@@ -124,7 +129,9 @@ const Signup = () => {
                       value={formData.name}
                       onChange={handleChange}
                       className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                        errors.name ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.name
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
                       }`}
                       placeholder="John Doe"
                     />
@@ -133,9 +140,12 @@ const Signup = () => {
                     <p className="mt-2 text-sm text-red-600">{errors.name}</p>
                   )}
                 </div>
-                
+
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Email Address
                   </label>
                   <div className="relative">
@@ -149,7 +159,9 @@ const Signup = () => {
                       value={formData.email}
                       onChange={handleChange}
                       className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                        errors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.email
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
                       }`}
                       placeholder="your@email.com"
                     />
@@ -158,9 +170,12 @@ const Signup = () => {
                     <p className="mt-2 text-sm text-red-600">{errors.email}</p>
                   )}
                 </div>
-                
+
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Phone Number
                   </label>
                   <div className="relative">
@@ -174,7 +189,9 @@ const Signup = () => {
                       value={formData.phone}
                       onChange={handleChange}
                       className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                        errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.phone
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
                       }`}
                       placeholder="10-digit number"
                     />
@@ -183,9 +200,12 @@ const Signup = () => {
                     <p className="mt-2 text-sm text-red-600">{errors.phone}</p>
                   )}
                 </div>
-                
+
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Password
                   </label>
                   <div className="relative">
@@ -194,12 +214,14 @@ const Signup = () => {
                     </div>
                     <input
                       id="password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
                       className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                        errors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.password
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
                       }`}
                       placeholder="••••••••"
                     />
@@ -208,16 +230,25 @@ const Signup = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="mt-2 text-sm text-red-600">{errors.password}</p>
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.password}
+                    </p>
                   )}
                 </div>
-                
+
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -226,30 +257,43 @@ const Signup = () => {
                     </div>
                     <input
                       id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
+                      type={showConfirmPassword ? "text" : "password"}
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
-                        errors.confirmPassword ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                        errors.confirmPassword
+                          ? "border-red-300 bg-red-50"
+                          : "border-gray-300"
                       }`}
                       placeholder="••••••••"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                     >
-                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <p className="mt-2 text-sm text-red-600">{errors.confirmPassword}</p>
+                    <p className="mt-2 text-sm text-red-600">
+                      {errors.confirmPassword}
+                    </p>
                   )}
                 </div>
-                
+
                 <div>
-                  <label htmlFor="userType" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="userType"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     I want to
                   </label>
                   <select
@@ -259,11 +303,15 @@ const Signup = () => {
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                   >
-                    <option value="customer">Book Studios (Customer)</option>
-                    <option value="owner">List My Studios (Owner)</option>
+                    <option value="customer">
+                      Book Studios (Content creator)
+                    </option>
+                    <option value="owner">
+                      List My Studios (Studio Partner)
+                    </option>
                   </select>
                 </div>
-                
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -275,15 +323,18 @@ const Signup = () => {
                       Creating Account...
                     </div>
                   ) : (
-                    'Create Account'
+                    "Create Account"
                   )}
                 </button>
               </form>
-              
+
               <div className="mt-8 text-center">
                 <p className="text-gray-600">
-                  Already have an account?{' '}
-                  <Link to="/login" className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
+                  Already have an account?{" "}
+                  <Link
+                    to="/login"
+                    className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+                  >
                     Sign in here
                   </Link>
                 </p>

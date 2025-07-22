@@ -181,7 +181,7 @@ const Login = () => {
                         : "border-gray-300"
                     }`}
                   >
-                    <option value="customer">User</option>
+                    <option value="customer">Content creator</option>
                     <option value="owner">Studio Partner</option>
                     <option value="admin">Admin</option>
                   </select>

@@ -1,54 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 
-const AvailabilityCalendar = ({
-  availableSlots,
-  packages,
-  onSlotSelect,
-  operationalHours,
-}) => {
+const AvailabilityCalendar = ({ availableSlots, packages, onSlotSelect }) => {
   const [selectedDate, setSelectedDate] = useState(null);
-  const [availableDates, setAvailableDates] = useState([]);
-  const [slotsForSelectedDate, setSlotsForSelectedDate] = useState([]);
   const [selectedHours, setSelectedHours] = useState([]);
   const [selectedPackage, setSelectedPackage] = useState(null);
 
-  useEffect(() => {
-    if (availableSlots && availableSlots.length > 0) {
-      // Extract unique dates from available slots
-      const uniqueDates = [
-        ...new Set(
-          availableSlots.map((slot) =>
-            format(new Date(slot.date), "yyyy-MM-dd")
-          )
-        ),
-      ];
-
-      // Convert string dates to Date objects
-      const dateObjects = uniqueDates.map((dateStr) => new Date(dateStr));
-      setAvailableDates(dateObjects);
+  // Memoize the available hours for the selected date for efficiency.
+  const availableHoursForSelectedDate = useMemo(() => {
+    if (!selectedDate || !availableSlots) {
+      return [];
     }
-  }, [availableSlots]);
+    const todaysData = availableSlots.find(
+      (day) => new Date(day.date).toDateString() === selectedDate.toDateString()
+    );
 
-  useEffect(() => {
-    if (selectedDate && availableSlots) {
-      // Find slots available for the selected date
-      const formattedSelectedDate = format(selectedDate, "yyyy-MM-dd");
-      const slots = availableSlots.filter(
-        (slot) =>
-          format(new Date(slot.date), "yyyy-MM-dd") === formattedSelectedDate
-      );
-      setSlotsForSelectedDate(slots);
-    } else {
-      setSlotsForSelectedDate([]);
+    // **MODIFIED**: Added sorting for the hours array
+    if (todaysData && todaysData.hours) {
+      // Sort hours in ascending order (e.g., 9, 10, 11, 12)
+      return [...todaysData.hours].sort((a, b) => a - b);
     }
+
+    return [];
   }, [selectedDate, availableSlots]);
+
+  // Function to determine which dates are selectable in the calendar
+  const isDateAvailable = (dateToFilter) => {
+    if (!availableSlots) return false;
+    // Check if any entry in the API data matches the date
+    return availableSlots.some(
+      (day) => new Date(day.date).toDateString() === dateToFilter.toDateString()
+    );
+  };
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
+    // Reset selections when the date changes
     setSelectedHours([]);
+    setSelectedPackage(null);
   };
 
   const handleHourToggle = (hour) => {
@@ -86,38 +77,6 @@ const AvailabilityCalendar = ({
     }
   };
 
-  // Custom date filtering function for DatePicker
-  const isDateAvailable = (date) => {
-    return availableDates.some(
-      (availableDate) =>
-        format(availableDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
-    );
-  };
-
-  // Generate available hours based on operational hours and available slots
-  const getAvailableHours = () => {
-    if (!operationalHours || !selectedDate) return [];
-
-    const startHour =
-      operationalHours.start ||
-      parseInt(operationalHours.start_time?.split(":")[0] || 0);
-    const endHour =
-      operationalHours.end ||
-      parseInt(operationalHours.end_time?.split(":")[0] || 24);
-
-    const availableHours = [];
-    for (let hour = startHour; hour < endHour; hour++) {
-      const isHourAvailable = slotsForSelectedDate.some(
-        (slot) => slot.hour === hour && slot.isAvailable
-      );
-      if (isHourAvailable) {
-        availableHours.push(hour);
-      }
-    }
-
-    return availableHours;
-  };
-
   const formatHour = (hour) => {
     const period = hour >= 12 ? "PM" : "AM";
     const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
@@ -153,9 +112,9 @@ const AvailabilityCalendar = ({
             Available Hours for {format(selectedDate, "MMMM d, yyyy")}
           </h4>
 
-          {getAvailableHours().length > 0 ? (
-            <div className="grid grid-cols-3 gap-2">
-              {getAvailableHours().map((hour) => (
+          {availableHoursForSelectedDate.length > 0 ? (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {availableHoursForSelectedDate.map((hour) => (
                 <button
                   key={hour}
                   onClick={() => handleHourToggle(hour)}
@@ -214,45 +173,45 @@ const AvailabilityCalendar = ({
         </div>
       )}
 
-      {/* Selection Summary */}
+      {/* Selection Summary & Confirm Button */}
       {selectedDate && selectedHours.length > 0 && selectedPackage && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <h4 className="font-medium mb-2 text-gray-900">Selection Summary</h4>
-          <div className="text-sm text-gray-600 space-y-1">
-            <p>
-              <span className="font-medium">Date:</span>{" "}
-              {format(selectedDate, "MMMM d, yyyy")}
-            </p>
-            <p>
-              <span className="font-medium">Hours:</span>{" "}
-              {selectedHours.map((h) => formatHour(h)).join(", ")}
-            </p>
-            <p>
-              <span className="font-medium">Duration:</span>{" "}
-              {selectedHours.length} hour{selectedHours.length > 1 ? "s" : ""}
-            </p>
-            <p>
-              <span className="font-medium">Package:</span>{" "}
-              {packages.find((p) => p.key === selectedPackage)?.name ||
-                selectedPackage}
-            </p>
-            <p>
-              <span className="font-medium">Base Price:</span> ₹
-              {packages.find((p) => p.key === selectedPackage)?.price *
-                selectedHours.length}
-            </p>
+        <>
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <h4 className="font-medium mb-2 text-gray-900">
+              Selection Summary
+            </h4>
+            <div className="text-sm text-gray-600 space-y-1">
+              <p>
+                <span className="font-medium">Date:</span>{" "}
+                {format(selectedDate, "MMMM d, yyyy")}
+              </p>
+              <p>
+                <span className="font-medium">Hours:</span>{" "}
+                {selectedHours.map((h) => formatHour(h)).join(", ")}
+              </p>
+              <p>
+                <span className="font-medium">Duration:</span>{" "}
+                {selectedHours.length} hour{selectedHours.length > 1 ? "s" : ""}
+              </p>
+              <p>
+                <span className="font-medium">Package:</span>{" "}
+                {packages.find((p) => p.key === selectedPackage)?.name ||
+                  selectedPackage}
+              </p>
+              <p>
+                <span className="font-medium">Base Price:</span> ₹
+                {packages.find((p) => p.key === selectedPackage)?.price *
+                  selectedHours.length}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Confirm Button */}
-      {selectedDate && selectedHours.length > 0 && selectedPackage && (
-        <button
-          onClick={handleConfirmSelection}
-          className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-sm"
-        >
-          Continue to Add-ons & Booking
-        </button>
+          <button
+            onClick={handleConfirmSelection}
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium shadow-sm"
+          >
+            Continue to Add-ons & Booking
+          </button>
+        </>
       )}
 
       {!selectedDate && (

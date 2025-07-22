@@ -48,28 +48,28 @@ const HelpCenter = () => {
       category: "booking",
       question: "How do I book a podcast studio?",
       answer:
-        "Sign in to PodHive, browse studios by location, amenities, or ratings, choose your preferred slot, make payment and receive instant confirmation.",
+        "Sign in to PodHive, browse studios by location, amenities, or ratings, choose your preferred slot and time. You can then contact the studio to confirm and pay directly upon arrival.",
     },
     {
       id: 4,
       category: "booking",
       question: "Can I reschedule or cancel my booking?",
       answer:
-        "Yes, but it depends on the studio’s cancellation/rescheduling policy, which is mentioned on each listing. Reschedules may require studio approval.",
+        "Cancellation or changes in booking is possible through demand, visit contact us page and pull up the request.",
     },
     {
       id: 5,
       category: "booking",
       question: "Will I get a refund if I cancel?",
       answer:
-        "Refunds are issued based on the studio’s individual cancellation policy. Check the terms before booking.",
+        "Since all payments are made directly at the studio, any refund requests upon cancellation are subject to the studio's individual policies. Please confirm with the studio directly.",
     },
     {
       id: 6,
       category: "booking",
       question: "What if the studio denies me entry or cancels last minute?",
       answer:
-        "In such cases, please contact our support team immediately. We’ll investigate and help issue a refund or arrange an alternative if possible.",
+        "In such cases, please contact our support team immediately. We’ll investigate and help you arrange an alternative if possible.",
     },
     {
       id: 7,
@@ -91,21 +91,21 @@ const HelpCenter = () => {
       category: "studio",
       question: "Can I set my own prices and policies?",
       answer:
-        "Yes! You control your hourly pricing, available slots, cancellation rules, and add-on services.",
+        "Yes! You control your hourly pricing, available slots, cancellation rules, and add-on services which customers will see on your listing.",
     },
     {
       id: 10,
       category: "studio",
       question: "How do I receive payments?",
       answer:
-        "Payments are collected by PodHive and transferred to your registered bank account as per the payout cycle. You’ll receive a detailed statement in your dashboard.",
+        "As all payments are made directly by the creators at your studio, you will receive payments on the spot. PodHive currently does not process payments on your behalf.",
     },
     {
       id: 11,
       category: "studio",
       question: "Can I block dates or modify availability?",
       answer:
-        "Yes, log into your studio dashboard and block out dates/times as needed. You can also sync with Google Calendar (optional).",
+        "Yes, log into your studio dashboard and block out dates/times as needed. This helps creators know when you are available.",
     },
     // Payments & Refunds
     {
@@ -113,21 +113,14 @@ const HelpCenter = () => {
       category: "booking",
       question: "What payment methods are supported?",
       answer:
-        "We accept UPI, Credit/Debit Cards, Net Banking, and digital wallets via secure gateways (e.g., Razorpay, Stripe).",
-    },
-    {
-      id: 13,
-      category: "booking",
-      question: "My payment failed — what should I do?",
-      answer:
-        "Check if your money was debited. If yes and no confirmation was received, please contact support with transaction details.",
+        "Currently, we are not accepting online payments. 'Pay at Studio' is the only available option, and payments should be made directly to the studio upon arrival.",
     },
     {
       id: 14,
       category: "booking",
       question: "How long do refunds take?",
       answer:
-        "If applicable, refunds are processed within 5–7 working days, depending on your bank/payment provider.",
+        "Refund processing times are determined by the individual studio's policy, as payments and cancellations are handled directly with them.",
     },
     // Account & App
     {
@@ -142,7 +135,7 @@ const HelpCenter = () => {
       category: "account",
       question: "How do I delete or deactivate my account?",
       answer:
-        "Email us at support@podhive.in with your registered email and request for deletion. We’ll process it within 72 hours.",
+        "Email us at care.podhive@gmail.com with your registered email and request for deletion. We’ll process it within 72 hours.",
     },
   ];
 
@@ -307,7 +300,7 @@ const HelpCenter = () => {
               <ArrowRight className="h-5 w-5 ml-2" />
             </Link>
             <a
-              href="mailto:support@podhive.com"
+              href="mailto:care.podhive@gmail.com"
               className="inline-flex items-center px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-xl hover:bg-white/20 transition-colors font-semibold border border-white/20"
             >
               Email Us Directly

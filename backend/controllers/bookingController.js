@@ -17,6 +17,7 @@ const createBooking = async (req, res) => {
     } = req.body;
 
     const date = new Date(dateStr);
+
     // 1) Validate studio and package/add-ons
     const studio = await Studio.findById(studioId);
     if (!studio || !studio.approved) {
@@ -24,12 +25,10 @@ const createBooking = async (req, res) => {
         .status(404)
         .json({ message: "Studio not found or not approved" });
     }
-    // must pick valid package
     const pkg = studio.packages.find((p) => p.key === packageKey);
     if (!pkg) {
       return res.status(400).json({ message: "Invalid package selection" });
     }
-    // validate addons
     let addonsTotal = 0;
     const validAddons = [];
     if (Array.isArray(addons)) {
@@ -39,31 +38,43 @@ const createBooking = async (req, res) => {
           return res.status(400).json({ message: `Invalid add-on: ${a.key}` });
         }
         if (a.quantity < 1 || a.quantity > master.maxQuantity) {
-          return res
-            .status(400)
-            .json({
-              message: `Quantity for ${a.key} must be 1–${master.maxQuantity}`,
-            });
+          return res.status(400).json({
+            message: `Quantity for ${a.key} must be 1–${master.maxQuantity}`,
+          });
         }
         addonsTotal += master.price * a.quantity;
         validAddons.push({ key: master.key, quantity: a.quantity });
       }
     }
 
-    // 2) Check availability for each hour
-    const availRecords = await Availability.find({
+    // --- REFACTORED AVAILABILITY CHECK ---
+    // 2) Check availability for the specific date
+    const availabilityForDate = await Availability.findOne({
       studio: studioId,
       date,
-      hour: { $in: hours },
-      isAvailable: true,
     });
-    if (availRecords.length !== hours.length) {
+
+    if (!availabilityForDate) {
       return res
         .status(400)
-        .json({ message: "One or more hours not available" });
+        .json({ message: "No availability for this date." });
     }
 
-    // 3) Calculate total price: package + add-ons
+    // Check if each requested hour is available
+    const availableSlots = availabilityForDate.slots.filter(
+      (slot) => hours.includes(slot.hour) && slot.isAvailable
+    );
+
+    if (availableSlots.length !== hours.length) {
+      return res
+        .status(400)
+        .json({
+          message: "One or more of the selected hours are not available.",
+        });
+    }
+    // --- END OF REFACTOR ---
+
+    // 3) Calculate total price
     const hoursCount = hours.length;
     const packageTotal = pkg.price * hoursCount;
     const totalPrice = packageTotal + addonsTotal;
@@ -80,13 +91,16 @@ const createBooking = async (req, res) => {
       paymentStatus,
     });
 
-    // 5) Mark availability as booked
-    await Availability.updateMany(
-      { studio: studioId, date, hour: { $in: hours } },
-      { isAvailable: false }
+    // --- REFACTORED UPDATE OPERATION ---
+    // 5) Mark availability as booked using arrayFilters
+    await Availability.updateOne(
+      { _id: availabilityForDate._id },
+      { $set: { "slots.$[elem].isAvailable": false } },
+      { arrayFilters: [{ "elem.hour": { $in: hours } }] }
     );
+    // --- END OF REFACTOR ---
 
-    // 6) Send confirmation emails (owner & customer)
+    // 6) Send confirmation emails
     const owner = await Studio.findById(studioId).populate(
       "author",
       "email name"
@@ -102,7 +116,9 @@ const createBooking = async (req, res) => {
       <ul>
         <li><strong>Studio:</strong> ${owner.name}</li>
         <li><strong>Date:</strong> ${date.toLocaleDateString()}</li>
-        <li><strong>Hours:</strong> ${hours.join(", ")}:00</li>
+        <li><strong>Hours:</strong> ${hours
+          .map((h) => `${h}:00`)
+          .join(", ")}</li>
         <li><strong>Package:</strong> ${pkg.key}</li>
         ${
           validAddons.length

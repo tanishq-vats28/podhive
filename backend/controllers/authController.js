@@ -5,6 +5,7 @@ const twilio = require("twilio");
 const User = require("../models/User");
 require("dotenv").config();
 
+// Nodemailer transporter setup
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   host: "smtp.gmail.com",
@@ -15,11 +16,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Twilio client setup
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
 
+// Generates a 4-digit OTP
 const generateOtp = () => Math.floor(1000 + Math.random() * 9000).toString();
 
 // Generate JWT Token
@@ -35,11 +38,15 @@ const registerUser = async (req, res) => {
   console.log("EMAIL_USER:", process.env.EMAIL_USER);
   console.log("EMAIL_PASS:", process.env.EMAIL_PASS);
 
-  const { name, email, password, userType, phone } = req.body;
+  const { name, password, userType, phone } = req.body;
 
-  if (!name || !email || !password || !userType) {
+  // Check for all fields, including email before lowercasing
+  if (!name || !req.body.email || !password || !userType) {
     return res.status(400).json({ message: "Please fill all required fields" });
   }
+
+  // --- CHANGE: Convert email to lowercase ---
+  const email = req.body.email.toLowerCase();
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -47,6 +54,7 @@ const registerUser = async (req, res) => {
     const phoneOtp = generateOtp();
     const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
 
+    // --- CHANGE: Use the lowercased email to find the user ---
     let user = await User.findOne({ email });
 
     if (user) {
@@ -69,6 +77,7 @@ const registerUser = async (req, res) => {
       // New user
       user = await User.create({
         name,
+        // --- CHANGE: Store the lowercased email ---
         email,
         password: hashedPassword,
         userType,
@@ -83,6 +92,7 @@ const registerUser = async (req, res) => {
     // Send email OTP
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
+      // --- CHANGE: Send to the lowercased email ---
       to: email,
       subject: "Your Email OTP",
       text: `Your email OTP is: ${emailOtp}`,
@@ -96,7 +106,7 @@ const registerUser = async (req, res) => {
     });
 
     res.status(201).json({
-      message: "OTP resent. Please verify OTP sent to your email and phone.",
+      message: "OTP sent. Please verify OTP sent to your email and phone.",
     });
   } catch (error) {
     res
@@ -108,15 +118,20 @@ const registerUser = async (req, res) => {
 // @desc    Verify OTPs
 // @route   POST /user/verify-otp
 const verifyOtp = async (req, res) => {
-  const { email, emailOtp, phoneOtp } = req.body;
+  const { emailOtp, phoneOtp } = req.body;
 
-  if (!email || !emailOtp || !phoneOtp) {
+  // Check for all fields, including email before lowercasing
+  if (!req.body.email || !emailOtp || !phoneOtp) {
     return res
       .status(400)
       .json({ message: "Please provide email and both OTPs" });
   }
 
+  // --- CHANGE: Convert email to lowercase ---
+  const email = req.body.email.toLowerCase();
+
   try {
+    // --- CHANGE: Use the lowercased email to find the user ---
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -155,13 +170,18 @@ const verifyOtp = async (req, res) => {
 // @desc    Login user
 // @route   POST /user/login
 const loginUser = async (req, res) => {
-  const { email, password, userType } = req.body;
+  const { password, userType } = req.body;
 
-  if (!email || !password || !userType) {
+  // Check for all fields, including email before lowercasing
+  if (!req.body.email || !password || !userType) {
     return res.status(400).json({ message: "Please fill all fields" });
   }
 
+  // --- CHANGE: Convert email to lowercase ---
+  const email = req.body.email.toLowerCase();
+
   try {
+    // --- CHANGE: Use the lowercased email to find the user ---
     const user = await User.findOne({ email });
 
     if (!user || user.userType !== userType) {
@@ -180,7 +200,7 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    const token = generateToken(user._id, userType);
+    const token = generateToken(user._id, user.userType);
 
     res.json({ token, role: userType });
   } catch (error) {

@@ -318,7 +318,7 @@ const Home = () => {
               &copy; {new Date().getFullYear()} PodHive. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a
+              {/* <a
                 href="#"
                 className="text-gray-400 hover:text-white transition-colors"
               >
@@ -335,7 +335,7 @@ const Home = () => {
                 className="text-gray-400 hover:text-white transition-colors"
               >
                 Instagram
-              </a>
+              </a> */}
             </div>
           </div>
         </div>

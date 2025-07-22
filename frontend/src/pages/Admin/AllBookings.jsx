@@ -158,8 +158,7 @@ const AllBookings = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center text-sm font-medium text-gray-900">
-                          <DollarSign className="h-4 w-4 mr-1" />₹
-                          {booking.totalPrice}
+                          ₹{booking.totalPrice}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { toast } from "react-toastify";
+// Import the new API function
+import { submitContactForm } from "../api"; // Assuming your api/index.js is in this path
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -40,15 +42,13 @@ const ContactUs = () => {
     setIsSubmitting(true);
 
     try {
-      // TODO: Replace with actual API call
-      // await submitContactForm(formData);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Use the actual API call
+      await submitContactForm(formData);
 
       toast.success(
         "Message sent successfully! We'll get back to you within 24 hours."
       );
+      // Reset form after successful submission
       setFormData({
         name: "",
         email: "",
@@ -57,7 +57,11 @@ const ContactUs = () => {
         category: "general",
       });
     } catch (error) {
-      toast.error("Failed to send message. Please try again.");
+      console.error("Failed to send message:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to send message. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -97,14 +101,14 @@ const ContactUs = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                    <p className="text-gray-600">support@podhive.com</p>
+                    <p className="text-gray-600">care.podhive@gmail.com</p>
                     <p className="text-sm text-gray-500 mt-1">
                       We'll respond within 24 hours
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start">
+                {/* <div className="flex items-start">
                   <div className="bg-green-100 p-3 rounded-xl mr-4">
                     <Phone className="h-6 w-6 text-green-600" />
                   </div>
@@ -115,7 +119,7 @@ const ContactUs = () => {
                       Mon-Fri, 9 AM - 6 PM IST
                     </p>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="flex items-start">
                   <div className="bg-purple-100 p-3 rounded-xl mr-4">
@@ -124,47 +128,12 @@ const ContactUs = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-1">Office</h3>
                     <p className="text-gray-600">
-                      123 Tech Park, Sector 5<br />
-                      Bangalore, Karnataka 560001
-                      <br />
-                      India
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="bg-blue-100 p-3 rounded-xl mr-4">
-                    <Clock className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-1">
-                      Business Hours
-                    </h3>
-                    <p className="text-gray-600">
-                      Monday - Friday: 9:00 AM - 6:00 PM
-                      <br />
-                      Saturday: 10:00 AM - 4:00 PM
-                      <br />
-                      Sunday: Closed
+                      1201, Tower 5, Advitya Homes,
+                      <br /> Sector 143, Faridabad
                     </p>
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Quick Help */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-white mt-8">
-              <h3 className="text-xl font-bold mb-4">Need Quick Help?</h3>
-              <p className="text-indigo-100 mb-6">
-                Check out our comprehensive help center for instant answers to
-                common questions.
-              </p>
-              <a
-                href="/help"
-                className="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
-              >
-                Visit Help Center
-              </a>
             </div>
           </div>
 
@@ -176,6 +145,7 @@ const ContactUs = () => {
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Form inputs remain the same */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label
@@ -278,22 +248,6 @@ const ContactUs = () => {
                     placeholder="Please describe your question or issue in detail..."
                   ></textarea>
                 </div>
-
-                <div className="bg-gray-50 p-4 rounded-xl">
-                  <div className="flex items-start">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
-                    <div className="text-sm text-gray-600">
-                      <p className="font-medium text-gray-900 mb-1">
-                        We respect your privacy
-                      </p>
-                      <p>
-                        Your information will only be used to respond to your
-                        inquiry and will not be shared with third parties.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -312,50 +266,6 @@ const ContactUs = () => {
                   )}
                 </button>
               </form>
-            </div>
-          </div>
-        </div>
-
-        {/* Response Time Info */}
-        <div className="mt-16 bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-8 w-8 text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Quick Response
-              </h3>
-              <p className="text-gray-600">
-                We typically respond to all inquiries within 24 hours during
-                business days.
-              </p>
-            </div>
-
-            <div>
-              <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="h-8 w-8 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Expert Support
-              </h3>
-              <p className="text-gray-600">
-                Our knowledgeable support team is here to help with any
-                questions or issues.
-              </p>
-            </div>
-
-            <div>
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="h-8 w-8 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Follow-up
-              </h3>
-              <p className="text-gray-600">
-                We ensure your issue is fully resolved and follow up to confirm
-                your satisfaction.
-              </p>
             </div>
           </div>
         </div>

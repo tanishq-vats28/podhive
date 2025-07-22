@@ -191,13 +191,13 @@ const PrivacyPolicy = () => {
               href="/contact"
               className="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
             >
-              Contact Privacy Team
+              Contact Team
             </a>
             <a
-              href="mailto:privacy@podhive.com"
+              href="mailto:care.podhive@gmail.com"
               className="inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl hover:bg-white/20 transition-colors font-semibold border border-white/20"
             >
-              privacy@podhive.com
+              care.podhive@gmail.com
             </a>
           </div>
         </div>
